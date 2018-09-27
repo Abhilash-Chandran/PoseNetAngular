@@ -1,13 +1,14 @@
 <vg-player (onPlayerReady)="onPlayerReady($event)">
-  <video 
-    [vgMedia]="media" 
-    #media 
-    id="singleVideo" 
-    preload="auto" 
+  <video
+    [vgMedia]="media"
+    #media
+    id="singleVideo"
+    preload="auto"
     controls
-    width=600
-    height=500
+    width=750
+    height=600
+    [src] = "currentSrc"
     crossorigin>
-      <source src="../videos/person15_walking_d1_uncomp.mp4" type="video/mp4">
+
   </video>
 </vg-player>

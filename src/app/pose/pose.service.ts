@@ -1,32 +1,51 @@
+import { environment } from '../../environments/environment';
+
 import { OnInit, Injectable } from "@angular/core";
 // import * as fs from 'fs';
 import { VideoModel } from "./video.model";
+import { HttpClient } from "@angular/common/http";
+
+
+import { map } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 @Injectable({
     providedIn: 'root'
 })
-export class PoseService implements OnInit{
-    
-    videoModelList: VideoModel[] = [];
+export class PoseService {
 
-    constructor() {
+    BACKEND_URL = environment.backendUrl;
+    BACKEND_API_URL = environment.backendUrl+'api/';
+
+    videoList: VideoModel[] = [];
+    videoListFetched = new Subject<VideoModel[]>();
+    constructor(private http: HttpClient) { }
+
+    fetchVideos() {
+      console.log('poseservice init');
+      this.http.get<{message:string, videos: any}>('http://localhost:3000/api/videos')
+       .pipe(map((respBody) => {
+         console.log(respBody);
+         return respBody.videos.map((video) => {
+           return {
+             action: video.action,
+             name: video.name,
+             srcUrl: this.BACKEND_URL + 'video/' + video.action + '/' + video.name
+           };
+         });
+       })
+      ).subscribe((videoList) => {
+          console.log('from service' + videoList[0].srcUrl);
+          this.videoList = videoList;
+          this.videoListFetched.next(this.videoList.slice());
+       });
     }
 
-    ngOnInit() {
-       // this.appendToVideoModelList('./videos');
+    getVideoList(){
+      return this.videoList.slice();
     }
 
-    // appendToVideoModelList(dirPath: string, action?: string) {
-    //     const root = fs.readdirSync('./videos');
-    //     root.forEach((file) =>{
-    //         const filestat = fs.statSync(file)
-    //         if(filestat.isFile) {
-    //             // const tmpFile = fs.readFileSync(file);
-    //             // this.videoModelList.push({path: filestat.name})
-    //             console.log(file);
-    //             console.log(filestat);
-    //         }
-    //     })
-    // }
-
+    getVideoListChangedListener() {
+      return this.videoListFetched.asObservable();
+    }
 }

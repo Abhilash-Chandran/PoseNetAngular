@@ -1,11 +1,29 @@
 const express = require('express')
 const fs = require('fs')
 const path = require('path')
+const bodyParser = require('body-parser');
+
 const app = express()
+const Pose = require('./models/pose');
+
+const mongoose = require('mongoose');
+
+
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/posenetdb?retryWrites=true')
+.then(() => {
+  console.log('mongodb connection successfull');
+})
+.catch((error) => {
+  console.log('mongodb Connection was not successfull ' + error);
+})
 
 let videosListObject = [];
 
 app.use(express.static(path.join(__dirname, 'assets')))
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false})); //  just for demo purpose.
+
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -79,4 +97,37 @@ app.get('/video/:action/:name', (req, res, next) => {
     fs.createReadStream(path).pipe(res)
   }
 })
+
+app.post('/api/newpose/:dataset', (req, res, next) => {
+  //console.log(req.body);
+  const keypoints =  req.body.keypoints.map((keypoint)=>{
+    return {
+      score: keypoint.score,
+      position: {
+        x: keypoint.position.x,
+        y: keypoint.position.y
+      },
+      part: keypoint.part
+    };
+  });
+  const pose = new Pose({
+    dataset: req.params.dataset,
+    action: req.body.action,
+    video_title: req.body.name,
+    score: req.body.score,
+    keypoints: keypoints
+  });
+  pose.save().then((result) => {
+    res.status(201).json({
+      message: 'Your pose is saved successfully',
+      poseId : result._id
+    });
+  })
+  .catch((err) => {
+    res.status(501).json({
+      message: 'Some error occured while saving the pose' + err
+    })
+  });
+  //next();
+});
 module.exports = app;

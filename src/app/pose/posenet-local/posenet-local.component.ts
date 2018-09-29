@@ -43,7 +43,7 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
       console.log('loaded metadata called');
       setTimeout(() => {
         this.playVideo();
-      }, 5000);
+      }, 10000);
     });
 
     this.videoEndedSubs = this.api.getDefaultMedia().subscriptions.ended.subscribe(() => {
@@ -52,9 +52,7 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
     })
 
     this.timeUpdateSubs = this.api.getDefaultMedia().subscriptions.timeUpdate.subscribe(() => {
-      this.detetectPose(this.videoHTML, this.api.currentTime).then((pose) => {
-        console.log(pose.keypoints);
-      });
+      this.detetectPose(this.videoHTML, this.api.currentTime);
     });
   }
 
@@ -63,17 +61,21 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
     const outputStride = 16;
     const flipHorizontal = false;
 
-    const net = await posenet.load();
+    const net = await posenet.load(0.50);
     const pose = await net.estimateSinglePose(video, imageScaleFactor, flipHorizontal, outputStride);
-    return pose;
+    net.dispose();
+    const currentVideo = this.videoList[this.currentIndex];
+    this.poseService.saveNewPose('jhmdb_poses', currentVideo.action, currentVideo.name, pose);
   }
   nextVideo() {
-    console.log('current indes is ' + this.currentIndex );
-    console.log('playlist length is ' + this.videoList.length);
+    console.log('current index is ' + this.currentIndex );
+   // console.log('playlist length is ' + this.videoList.length);
     this.currentIndex++;
 
     if (this.currentIndex === this.videoList.length) {
         this.currentIndex = 0;
+
+        return;
     }
     let { srcUrl } = this.videoList[this.currentIndex];
     this.currentSrc = srcUrl;
@@ -88,6 +90,13 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
     this.loadedMetaDataSubs.unsubscribe();
     this.videoEndedSubs.unsubscribe();
     this.videoListFetched.unsubscribe();
+  }
+
+  stopExraction() {
+    this.api.pause();
+    this.timeUpdateSubs.unsubscribe();
+    this.loadedMetaDataSubs.unsubscribe();
+    this.videoEndedSubs.unsubscribe();
   }
 
 

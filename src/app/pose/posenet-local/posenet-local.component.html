@@ -1,4 +1,9 @@
-<vg-player (onPlayerReady)="onPlayerReady($event)">
+<div>
+  <button (click) = "stopExraction()">Stop Extraction</button>
+</div>
+
+<vg-player (onPlayerReady)="onPlayerReady($event)" width=750
+height=600>
   <video
     [vgMedia]="media"
     #media

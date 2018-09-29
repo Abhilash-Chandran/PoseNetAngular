@@ -8,6 +8,7 @@ import { HttpClient } from "@angular/common/http";
 
 import { map } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { Pose } from '@tensorflow-models/posenet';
 
 @Injectable({
     providedIn: 'root'
@@ -47,5 +48,16 @@ export class PoseService {
 
     getVideoListChangedListener() {
       return this.videoListFetched.asObservable();
+    }
+
+    saveNewPose(dataset: string, action: string, video_name: string, pose: Pose) {
+      const newPose = {
+        action: action,
+        name: video_name,
+        score: pose.score,
+        keypoints: pose.keypoints
+      }
+      this.http.post(this.BACKEND_API_URL + 'newpose/' + dataset, newPose).subscribe((reponse)=>{
+      });
     }
 }

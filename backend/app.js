@@ -130,4 +130,49 @@ app.post('/api/newpose/:dataset', (req, res, next) => {
   });
   //next();
 });
+
+app.get('/api/datasets', (req, res, next) => {
+  res.status(200).json({
+    datasets: ["jhmdb_poses", "Dummy1", "Dummy2"]
+  })
+});
+
+app.get('/api/:dataset/actions', (req, res, next) => {
+  const query = Pose.find();
+  const datasetName = req.params.dataset;
+  query.distinct('action');
+  query.where('dataset').equals(datasetName);
+  query.then((documents) => {
+    res.status(200).json({
+      message: 'Actions found for the dataset ' + datasetName,
+      actions: documents,
+      //actionCount: Pose.count()
+    });
+  }).catch((err) => {
+      res.status(501).json({
+        message: "Somme error occured while fetching action for the " + datasetName + " dataset." + err
+      });
+  });
+});
+
+app.get('/api/:dataset/:action/keypoints', (req, res, next) => {
+  const query = Pose.find();
+  const datasetName = req.params.dataset;
+  const action = req.params.action;
+  query.select('action video_title score keypoints');
+  query.where('dataset').equals(datasetName);
+  query.where('action').equals(action);
+  query.then((documents) => {
+    res.status(200).json({
+      message: 'Actions found for the dataset ' + datasetName,
+      poses: documents,
+      //actionCount: Pose.count()
+    })
+  }).catch((err) => {
+      res.status(501).json({
+        message: "Somme error occured while fetching action for the " + datasetName + " dataset." + err
+      });
+  });
+});
+
 module.exports = app;

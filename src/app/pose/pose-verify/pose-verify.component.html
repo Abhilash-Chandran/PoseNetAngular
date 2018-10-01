@@ -1,0 +1,36 @@
+<div class="container">
+  <div class="item-1">
+    <mat-form-field>
+      <mat-select placeholder="Choose a dataset" (selectionChange)="onSelectionChanged($event)" [(value)]="datasetSelected">
+        <mat-option>None</mat-option>
+        <mat-option *ngFor="let datasetName of datasets" [value]="datasetName">{{datasetName}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-divider [vertical]="true"></mat-divider>
+    <mat-form-field *ngIf="(actions$ | async) as actionsNames;">
+      <mat-select placeholder="Choose an action" (selectionChange)="onActionChanged($event)" [(value)]="actionSelected">
+        <mat-option>None</mat-option>
+        <mat-option *ngFor="let action of actionsNames" [value]="action">{{action}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="item-2">
+    <mat-accordion>
+      <mat-expansion-panel *ngFor="let poseVar of poses">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            {{ poseVar.video_title }}
+          </mat-panel-title>
+          <mat-panel-description>
+            {{ poseVar.action }}
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <app-pose-list
+          [dataset]="datasetSelected"
+          [action]="actionSelected"
+          [pose]="poseVar">
+        </app-pose-list>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
+</div>

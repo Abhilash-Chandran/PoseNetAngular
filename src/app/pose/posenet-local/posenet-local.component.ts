@@ -19,9 +19,9 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
   videoListFetched: Subscription;
 
   @ViewChild('media') media: ElementRef;
-  videoHTML : any;
+  videoHTML: any;
   videoList: VideoModel[];
-  currentIndex: number = 0;
+  currentIndex = 0;
   currentSrc: string;
   constructor(private poseService: PoseService) { }
 
@@ -32,31 +32,31 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
     this.videoListFetched = this.poseService.getVideoListChangedListener().subscribe((videoListfromApi) => {
       this.videoList = videoListfromApi;
       this.currentSrc = this.videoList[0].srcUrl;
-    })
+    });
   }
 
-  onPlayerReady(api:VgAPI) {
+  onPlayerReady(api: VgAPI) {
     console.log('onPlayer ready called.');
     this.api = api;
 
     this.loadedMetaDataSubs = this.api.getDefaultMedia().subscriptions.loadedMetadata.subscribe(() => {
       console.log('loaded metadata called');
-      setTimeout(() => {
-        this.playVideo();
-      }, 10000);
+      // setTimeout(() => {
+      //   this.playVideo();
+      // }, 10000);
     });
 
     this.videoEndedSubs = this.api.getDefaultMedia().subscriptions.ended.subscribe(() => {
       console.log('video ended called');
       this.nextVideo();
-    })
+    });
 
     this.timeUpdateSubs = this.api.getDefaultMedia().subscriptions.timeUpdate.subscribe(() => {
       this.detetectPose(this.videoHTML, this.api.currentTime);
     });
   }
 
-  async detetectPose(video: any, updatedtime: string){
+  async detetectPose(video: any, updatedtime: string) {
     const imageScaleFactor = 0.5;
     const outputStride = 16;
     const flipHorizontal = false;
@@ -74,10 +74,10 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
 
     if (this.currentIndex === this.videoList.length) {
         this.currentIndex = 0;
-
+        this.stopExraction();
         return;
     }
-    let { srcUrl } = this.videoList[this.currentIndex];
+    const { srcUrl } = this.videoList[this.currentIndex];
     this.currentSrc = srcUrl;
   }
 

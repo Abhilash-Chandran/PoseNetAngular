@@ -1,7 +1,3 @@
-<div>
-  <button (click) = "stopExraction()">Stop Extraction</button>
-</div>
-
 <vg-player (onPlayerReady)="onPlayerReady($event)" width=750
 height=600>
   <video
@@ -17,3 +13,7 @@ height=600>
 
   </video>
 </vg-player>
+<hr>
+<div>
+  <button mat-raised-button color="primary" (click) = "stopExraction()">Stop Extraction</button>
+</div>

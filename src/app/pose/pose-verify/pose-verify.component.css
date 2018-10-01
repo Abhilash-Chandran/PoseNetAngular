@@ -1,0 +1,17 @@
+.container {
+  display: grid;
+  grid-template-columns: 200px auto;
+  grid-gap: 20px;
+  grid-template-areas:
+   "selectors videos";
+}
+
+.item-1 {
+  grid-area: selectors;
+}
+
+.item-2 {
+  grid-area: videos;
+}
+
+

@@ -1,0 +1,25 @@
+<div class="container">
+  <div class="item-1">
+    <vg-player width=750 height=600>
+      <video
+      [vgMedia]="media"
+      #media
+      id="singleVideo"
+      preload="auto"
+      controls
+      width=750
+      height=600
+      [src] = "src"
+      crossorigin>
+      </video>
+    </vg-player>
+  </div>
+  <div class="item-2">
+    <canvas #loc_canvas id="output" width="750" height="600" style="border:1px solid #000000;">
+    </canvas>
+  </div>
+  <div>
+    <button mat-raised-button color="primary" (click) = "animateKeypoints()">Stop Extraction</button>
+  </div>
+
+</div>

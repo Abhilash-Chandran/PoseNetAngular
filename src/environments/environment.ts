@@ -4,7 +4,8 @@
 
 export const environment = {
   production: false,
-  backendUrl: 'http://localhost:3000/'
+  backendUrl: 'http://localhost:3000/',
+  mongo_d: 'C5f7325Oq1v1bJgO'
 };
 
 /*

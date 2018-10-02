@@ -1,19 +1,23 @@
-<vg-player (onPlayerReady)="onPlayerReady($event)" width=750
-height=600>
-  <video
-    [vgMedia]="media"
-    #media
-    id="singleVideo"
-    preload="auto"
-    controls
-    width=750
-    height=600
-    [src] = "currentSrc"
-    crossorigin>
-
-  </video>
-</vg-player>
-<hr>
-<div>
-  <button mat-raised-button color="primary" (click) = "stopExraction()">Stop Extraction</button>
+<div class="container">
+  <div class="item-1">
+    <mat-form-field>
+      <mat-select placeholder="Choose a dataset" (selectionChange)="onSelectionChanged($event)" [(value)]="datasetSelected">
+        <mat-option>None</mat-option>
+        <mat-option *ngFor="let datasetName of datasets" [value]="datasetName">{{datasetName}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="item-2" *ngIf="datasetSelected != null && videoList">
+    <vg-player (onPlayerReady)="onPlayerReady($event)">
+      <video [vgMedia]="media" #media id="singleVideo" width=750 height=600 preload="auto" controls width=750 height=600 [src]="currentSrc"
+        crossorigin>
+      </video>
+    </vg-player>
+    <hr>
+    <div>
+      <button mat-raised-button color="primary" (click)="startOrPauseExtraction()">{{ btn_text }}</button>
+      <span style="height: 10px; border: black; width:1px; padding: 5px; color: black;"></span>
+      <button mat-raised-button color="warn" (click)="stopExraction()">Stop Extraction</button>
+    </div>
+  </div>
 </div>

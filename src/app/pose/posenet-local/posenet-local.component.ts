@@ -1,7 +1,7 @@
-import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import * as posenet from '@tensorflow-models/posenet';
-import { VgAPI, VgMedia } from 'videogular2/core';
 import { Subscription } from 'rxjs';
+import { VgAPI } from 'videogular2/core';
 import { PoseService } from '../pose.service';
 import { VideoModel } from '../video.model';
 
@@ -18,41 +18,38 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
   videoEndedSubs: Subscription;
   videoListFetched: Subscription;
 
+  // select dataset options
+  datasets: string[];
+  datasetSelected: string;
+
+  // Video element
   @ViewChild('media') media: ElementRef;
-  videoHTML: any;
   videoList: VideoModel[];
   currentIndex = 0;
   currentSrc: string;
+  btn_text = 'Start Extraction';
+
+  isPlaying = false;
+
   constructor(private poseService: PoseService) { }
 
-  ngOnInit() {
-    console.log('ngoninti called once');
-    this.videoHTML = this.media.nativeElement;
-    this.poseService.fetchVideos();
-    this.videoListFetched = this.poseService.getVideoListChangedListener().subscribe((videoListfromApi) => {
-      this.videoList = videoListfromApi;
-      this.currentSrc = this.videoList[0].srcUrl;
-    });
+  ngOnInit() {    
+    this.poseService.fetchDatasetNames();
+    this.poseService.datasetNamesFetched.subscribe((datasetNames: string[]) => {
+      this.datasets = datasetNames;      
+    });    
   }
 
   onPlayerReady(api: VgAPI) {
-    console.log('onPlayer ready called.');
-    this.api = api;
-
-    this.loadedMetaDataSubs = this.api.getDefaultMedia().subscriptions.loadedMetadata.subscribe(() => {
-      console.log('loaded metadata called');
-      // setTimeout(() => {
-      //   this.playVideo();
-      // }, 10000);
-    });
+    console.log('On player ready called.');
+    this.api = api;         
 
     this.videoEndedSubs = this.api.getDefaultMedia().subscriptions.ended.subscribe(() => {
       console.log('video ended called');
       this.nextVideo();
-    });
-
+    }); 
     this.timeUpdateSubs = this.api.getDefaultMedia().subscriptions.timeUpdate.subscribe(() => {
-      this.detetectPose(this.videoHTML, this.api.currentTime);
+      this.detetectPose(this.media.nativeElement, this.api.currentTime);
     });
   }
 
@@ -67,11 +64,10 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
     const currentVideo = this.videoList[this.currentIndex];
     this.poseService.saveNewPose('jhmdb_poses', currentVideo.action, currentVideo.name, pose);
   }
+
   nextVideo() {
     console.log('current index is ' + this.currentIndex );
-   // console.log('playlist length is ' + this.videoList.length);
     this.currentIndex++;
-
     if (this.currentIndex === this.videoList.length) {
         this.currentIndex = 0;
         this.stopExraction();
@@ -81,15 +77,12 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
     this.currentSrc = srcUrl;
   }
 
-  playVideo() {
-      this.api.play();
+  playVideo() {      
+       this.api.play();            
   }
 
-  ngOnDestroy() {
-    this.timeUpdateSubs.unsubscribe();
-    this.loadedMetaDataSubs.unsubscribe();
-    this.videoEndedSubs.unsubscribe();
-    this.videoListFetched.unsubscribe();
+  pauseVideo() {
+    this.api.pause();
   }
 
   stopExraction() {
@@ -99,5 +92,44 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
     this.videoEndedSubs.unsubscribe();
   }
 
+  startOrPauseExtraction() { 
+    if(this.btn_text == 'Start Extraction') {
+      this.loadedMetaDataSubs = this.api.getDefaultMedia().subscriptions.loadedMetadata.subscribe(() => {            
+        setTimeout(() => {
+          this.playVideo();
+        }, 5000);
+      });  
+      this.btn_text = 'Pause Extraction';
+      this.playVideo();
+    } else {
+      this.pauseVideo();
+      this.btn_text = 'Start Extraction';
+      this.locUnsubscribe(this.loadedMetaDataSubs);
+      
+    }  
+    
+  }
+  
+  onSelectionChanged(event) {
+    this.videoList = null;
+    this.poseService.fetchVideos(this.datasetSelected);
+    this.videoListFetched = this.poseService.getVideoListChangedListener().subscribe((videoListfromApi) => {
+      console.log('subscribe called');            
+      this.currentSrc = videoListfromApi[0].srcUrl;      
+      this.videoList = videoListfromApi;
+    });
+  }
 
+  ngOnDestroy() {
+    this.locUnsubscribe(this.timeUpdateSubs);
+    this.locUnsubscribe(this.loadedMetaDataSubs);
+    this.locUnsubscribe(this.videoEndedSubs);
+    this.locUnsubscribe(this.videoListFetched);
+  }
+
+  locUnsubscribe(subs: Subscription){
+    if(subs){
+      subs.unsubscribe();
+    }
+  }
 }

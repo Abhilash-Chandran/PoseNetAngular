@@ -22,25 +22,22 @@ export class PoseService {
   datasetNamesFetched = new Subject<string[]>();
   constructor(private http: HttpClient) {}
 
-  fetchVideos() {
-    console.log('poseservice init');
+  fetchVideos(datasetName: string) {
     this.http
-      .get<{ message: string; videos: any }>('http://localhost:3000/api/videos')
+      .get<{ message: string; videos: any }>('http://localhost:3000/api/videos/'+datasetName)
       .pipe(
-        map(respBody => {
-          console.log(respBody);
+        map(respBody => {         
           return respBody.videos.map(video => {
             return {
               action: video.action,
               name: video.name,
               srcUrl:
-                this.BACKEND_URL + 'video/' + video.action + '/' + video.name
+                this.BACKEND_URL + 'video/' + datasetName + '/'+ video.action + '/' + video.name
             };
           });
         })
       )
       .subscribe(videoList => {
-        console.log('from service' + videoList[0].srcUrl);
         this.videoList = videoList;
         this.videoListFetched.next(this.videoList.slice());
       });
@@ -82,27 +79,5 @@ export class PoseService {
 
   getKeyPoints(datasetName: string, actionName: string) {
     return this.http.get<PoseReponseModel>(this.BACKEND_API_URL + datasetName + '/' + actionName + '/keypoints');
-    // .pipe(
-    //   map((response) => {
-    //     return response.poses;
-    //   }),
-    //   map((poses: Pose) => {
-    //     console.log(poses.keypoints[0] + ' from the service');
-    //     const keypoints = poses.keypoints.map((keypoint) => {
-    //       return new Keypoint(
-    //         keypoint.position,
-    //         keypoint._id,
-    //         keypoint.score,
-    //         keypoint.part
-    //       );
-    //     });
-    //     return new Pose (
-    //       actionName,
-    //       poses.video_title,
-    //       poses.score,
-    //       keypoints
-    //     );
-    //   })
-    // );
   }
  }

@@ -1,5 +1,7 @@
 const express = require('express')
-const fs = require('fs')
+const { readdirSync, statSync, createReadStream } = require('fs')
+const { join } = require('path')
+
 const path = require('path')
 const bodyParser = require('body-parser');
 
@@ -11,6 +13,7 @@ const mongoose = require('mongoose');
 
 // Connect to MongoDB
 mongoose.connect('mongodb://localhost:27017/posenetdb?retryWrites=true')
+//mongoose.connect('mongodb+srv://poseon:C5f7325Oq1v1bJgO@cluster0-x3lta.mongodb.net/test?retryWrites=true')
 .then(() => {
   console.log('mongodb connection successfull');
 })
@@ -18,12 +21,25 @@ mongoose.connect('mongodb://localhost:27017/posenetdb?retryWrites=true')
   console.log('mongodb Connection was not successfull ' + error);
 })
 
-let videosListObject = [];
 
 app.use(express.static(path.join(__dirname, 'assets')))
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false})); //  just for demo purpose.
 
+let tmpVideosListObject = {};
+let datasetVideos = {};
+
+const datasets = readdirSync(path.join(__dirname, 'assets', 'videos'))
+                      .filter(f => statSync(join(path.join(__dirname, 'assets', 'videos'), f)).isDirectory());
+
+datasets.forEach(datasetName => {
+  console.log('processing dataset ' + datasetName);
+  tmpVideosListObject = {};
+  recursiveReadDir(__dirname+'/assets/videos/'+ datasetName +'/','');
+  console.log(tmpVideosListObject);
+  datasetVideos[datasetName] = tmpVideosListObject;
+  tmpVideosListObject = null;
+});  
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -39,34 +55,32 @@ app.use((req, res, next) => {
 
 
 function recursiveReadDir(dirPath, currentDir) {
-  const filesList = fs.readdirSync(dirPath+currentDir)
+  const filesList = readdirSync(dirPath+currentDir)
                       .filter(item => !(/(^|\/)\.[^\/\.]/g).test(item));
   const rootPath = dirPath + (currentDir.length>0?currentDir + '/': '')
-  console.log(rootPath);
   for(file of filesList){
-    const fileStat = fs.statSync(rootPath+file);
+    const fileStat = statSync(rootPath+file);
     if(fileStat.isDirectory()){
-      videosListObject[file] = [];
+      tmpVideosListObject[file] = [];
       recursiveReadDir(rootPath, file);
-    } else {
-      const newFile = {action: currentDir, name: file};
-      videosListObject = [...videosListObject, newFile ] ;
+    } else {      
+      tmpVideosListObject[currentDir] = [...tmpVideosListObject[currentDir], file ] ;
     }
   }
 }
 
-app.get('/api/videos', (req,res,next) => {
-  videosListObject = [];
-  recursiveReadDir(__dirname+'/assets/videos/','');
+
+app.get('/api/videos/:dataset', (req,res,next) => {
+  
   res.status(200).json({
     message: 'These are the list of videos',
-    videos: videosListObject
+    videos: datasetVideos[req.params.dataset]
   })
 })
 
-app.get('/video/:action/:name', (req, res, next) => {
-  const path = 'backend/assets/videos/'+ req.params.action +'/'+req.params.name;
-  const stat = fs.statSync(path)
+app.get('/video/:dataset/:action/:name', (req, res, next) => {
+  const path = 'backend/assets/videos/'+ req.params.dataset +'/' + req.params.action +'/'+req.params.name;
+  const stat = statSync(path)
   const fileSize = stat.size
   const range = req.headers.range
 
@@ -78,7 +92,7 @@ app.get('/video/:action/:name', (req, res, next) => {
       : fileSize-1
 
     const chunksize = (end-start)+1
-    const file = fs.createReadStream(path, {start, end})
+    const file = createReadStream(path, {start, end})
     const head = {
       'Content-Range': `bytes ${start}-${end}/${fileSize}`,
       'Accept-Ranges': 'bytes',
@@ -94,7 +108,7 @@ app.get('/video/:action/:name', (req, res, next) => {
       'Content-Type': 'video/mp4',
     }
     res.writeHead(200, head)
-    fs.createReadStream(path).pipe(res)
+    createReadStream(path).pipe(res)
   }
 })
 
@@ -133,25 +147,29 @@ app.post('/api/newpose/:dataset', (req, res, next) => {
 
 app.get('/api/datasets', (req, res, next) => {
   res.status(200).json({
-    datasets: ["jhmdb_poses", "Dummy1", "Dummy2"]
-  })
+    datasets: datasets
+  });
 });
 
 app.get('/api/:dataset/actions', (req, res, next) => {
-  const query = Pose.find();
+  // const query = Pose.find();
   const datasetName = req.params.dataset;
-  query.distinct('action');
-  query.where('dataset').equals(datasetName);
-  query.then((documents) => {
-    res.status(200).json({
-      message: 'Actions found for the dataset ' + datasetName,
-      actions: documents,
-      //actionCount: Pose.count()
-    });
-  }).catch((err) => {
-      res.status(501).json({
-        message: "Somme error occured while fetching action for the " + datasetName + " dataset." + err
-      });
+  // query.distinct('action');
+  // query.where('dataset').equals(datasetName);
+  // query.then((documents) => {
+  //   res.status(200).json({
+  //     message: 'Actions found for the dataset ' + datasetName,
+  //     actions: documents,
+  //     //actionCount: Pose.count()
+  //   });
+  // }).catch((err) => {
+  //     res.status(501).json({
+  //       message: "Somme error occured while fetching action for the " + datasetName + " dataset." + err
+  //     });
+  // });
+  res.status(200).json({
+    message: 'Actions found for the dataset ' + datasetName,
+    actions: Object.keys(datasetVideos[datasetName])
   });
 });
 

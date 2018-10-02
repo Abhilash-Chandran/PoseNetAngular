@@ -173,6 +173,16 @@ app.get('/api/:dataset/actions', (req, res, next) => {
   });
 });
 
+app.get('/api/:dataset/:action/videos', (req, res, next) => {
+  const datasetName = req.params.dataset;
+  const actionName = req.params.action;
+  
+  res.status(200).json({
+    message: 'Videos found for the dataset ' + datasetName +' and action ' + actionName,
+    videos: datasetVideos[datasetName][actionName]
+  });
+})
+
 app.get('/api/:dataset/:action/keypoints', (req, res, next) => {
   const query = Pose.find();
   const datasetName = req.params.dataset;

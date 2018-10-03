@@ -7,7 +7,7 @@
       </mat-select>
     </mat-form-field>
   </div>
-  <div class="item-2" *ngIf="datasetSelected != null && videoList">
+  <div class="item-2" *ngIf="datasetSelected != null && videoList.length>0">
     <vg-player (onPlayerReady)="onPlayerReady($event)">
       <video [vgMedia]="media" #media id="singleVideo" width=750 height=600 preload="auto" controls width=750 height=600 [src]="currentSrc"
         crossorigin>

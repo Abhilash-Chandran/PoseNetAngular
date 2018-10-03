@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs';
 import { VgAPI } from 'videogular2/core';
 import { PoseService } from '../pose.service';
 import { VideoModel } from '../video.model';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-posenet-local',
@@ -17,6 +18,8 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
   loadedMetaDataSubs: Subscription;
   videoEndedSubs: Subscription;
   videoListFetched: Subscription;
+  BACKEND_URL = environment.backendUrl;
+  datasetDetails = {};
 
   // select dataset options
   datasets: string[];
@@ -33,21 +36,22 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
 
   constructor(private poseService: PoseService) { }
 
-  ngOnInit() {    
-    this.poseService.fetchDatasetNames();
-    this.poseService.datasetNamesFetched.subscribe((datasetNames: string[]) => {
-      this.datasets = datasetNames;      
-    });    
+  ngOnInit() {
+    this.poseService.fetchDatasetDetails();
+    this.poseService.datasetDetailsFetched.subscribe((datasetDetails: Object) => {
+      this.datasetDetails = datasetDetails;
+      this.datasets = Object.keys(this.datasetDetails);
+    });
   }
 
   onPlayerReady(api: VgAPI) {
     console.log('On player ready called.');
-    this.api = api;         
+    this.api = api;
 
     this.videoEndedSubs = this.api.getDefaultMedia().subscriptions.ended.subscribe(() => {
       console.log('video ended called');
       this.nextVideo();
-    }); 
+    });
     this.timeUpdateSubs = this.api.getDefaultMedia().subscriptions.timeUpdate.subscribe(() => {
       this.detetectPose(this.media.nativeElement, this.api.currentTime);
     });
@@ -77,8 +81,8 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
     this.currentSrc = srcUrl;
   }
 
-  playVideo() {      
-       this.api.play();            
+  playVideo() {
+       this.api.play();
   }
 
   pauseVideo() {
@@ -92,32 +96,39 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
     this.videoEndedSubs.unsubscribe();
   }
 
-  startOrPauseExtraction() { 
-    if(this.btn_text == 'Start Extraction') {
-      this.loadedMetaDataSubs = this.api.getDefaultMedia().subscriptions.loadedMetadata.subscribe(() => {            
+  startOrPauseExtraction() {
+    if (this.btn_text === 'Start Extraction') {
+      this.loadedMetaDataSubs = this.api.getDefaultMedia().subscriptions.loadedMetadata.subscribe(() => {
         setTimeout(() => {
           this.playVideo();
         }, 5000);
-      });  
+      });
       this.btn_text = 'Pause Extraction';
       this.playVideo();
     } else {
       this.pauseVideo();
       this.btn_text = 'Start Extraction';
       this.locUnsubscribe(this.loadedMetaDataSubs);
-      
-    }  
-    
+
+    }
+
   }
-  
+
   onSelectionChanged(event) {
-    this.videoList = null;
-    this.poseService.fetchVideos(this.datasetSelected);
-    this.videoListFetched = this.poseService.getVideoListChangedListener().subscribe((videoListfromApi) => {
-      console.log('subscribe called');            
-      this.currentSrc = videoListfromApi[0].srcUrl;      
-      this.videoList = videoListfromApi;
+    this.videoList = [];
+    const tmpDataset = this.datasetDetails[this.datasetSelected];
+    Object.keys(tmpDataset).forEach(action => {
+      tmpDataset[action].forEach(video_title => {
+        this.videoList.push(
+          new VideoModel(
+              action,
+              video_title,
+              this.BACKEND_URL + 'video/' + this.datasetSelected + '/' + action + '/' + video_title
+            )
+        );
+      });
     });
+    this.currentSrc = this.videoList[0].srcUrl;
   }
 
   ngOnDestroy() {
@@ -127,8 +138,8 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
     this.locUnsubscribe(this.videoListFetched);
   }
 
-  locUnsubscribe(subs: Subscription){
-    if(subs){
+  locUnsubscribe(subs: Subscription) {
+    if (subs) {
       subs.unsubscribe();
     }
   }

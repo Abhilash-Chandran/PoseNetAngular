@@ -10,36 +10,40 @@ import { Pose } from '../pose-response.model';
 })
 export class PoseVerifyComponent implements OnInit {
 
+  datasetDetails = {};
+
   datasets: string[] = [];
   datasetSelected: string;
 
-  actions$: Observable<string[]>;
+  actions: string[];
   actionSelected: string;
+
+  videos: string[];
+  videoSelected: string;
+
   constructor(private poseService: PoseService) { }
 
   poses: Pose[] = [];
 
   ngOnInit() {
-    this.poseService.fetchDatasetNames();
-    this.poseService.datasetNamesFetched.subscribe((datasetNames: string[]) => {
-      this.datasets = datasetNames;
+    this.poseService.fetchDatasetDetails();
+    this.poseService.datasetDetailsFetched.subscribe((datasetDetails: Object) => {
+      this.datasetDetails = datasetDetails;
+      this.datasets = Object.keys(this.datasetDetails);
     });
   }
 
   onSelectionChanged(event) {
-    this.actions$ = null;
+    this.actions = null;
     if (this.datasetSelected) {
-      this.actions$ = this.poseService.getActionNames(this.datasetSelected);
+      this.actions = Object.keys(this.datasetDetails[this.datasetSelected]);
     }
   }
 
-  onActionChanged(event) {
-    console.log('reached the list action ' + this.actionSelected);
+  onActionChanged() {
+    this.videos = null;
     if (this.actionSelected) {
-      this.poseService.getKeyPoints(this.datasetSelected, this.actionSelected)
-      .subscribe((response) => {
-        this.poses = response.poses;
-      });
+      this.videos = this.datasetDetails[this.datasetSelected][this.actionSelected];
     }
   }
 }

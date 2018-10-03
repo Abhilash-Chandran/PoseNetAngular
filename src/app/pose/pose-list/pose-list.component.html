@@ -1,4 +1,7 @@
-<div class="container">
+<div *ngIf="fetching">
+  <mat-spinner></mat-spinner>
+</div>
+<div class="container" *ngIf="!fetching">
   <div class="item-1">
     <vg-player width=750 height=600>
       <video
@@ -17,9 +20,7 @@
   <div class="item-2">
     <canvas #loc_canvas id="output" width="750" height="600" style="border:1px solid #000000;">
     </canvas>
+    <button mat-raised-button color="primary" (click) = "animateKeypoints()">Animate Keypoints</button>
+    <button mat-raised-button color="warn" (click) = "stopAnimation()">Stop Animation</button>
   </div>
-  <div>
-    <button mat-raised-button color="primary" (click) = "animateKeypoints()">Stop Extraction</button>
-  </div>
-
 </div>

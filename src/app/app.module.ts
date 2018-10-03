@@ -1,6 +1,13 @@
 import { HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
-import { MatButtonModule, MatDividerModule, MatSelectModule, MatToolbarModule, MatExpansionModule } from '@angular/material';
+import {
+  MatButtonModule,
+  MatDividerModule,
+  MatSelectModule,
+  MatToolbarModule,
+  MatExpansionModule,
+  MatProgressSpinnerModule
+} from '@angular/material';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { VgBufferingModule } from 'videogular2/buffering';
@@ -15,15 +22,13 @@ import { PoseVerifyComponent } from './pose/pose-verify/pose-verify.component';
 import { PosenetLocalComponent } from './pose/posenet-local/posenet-local.component';
 import { PoseListComponent } from './pose/pose-list/pose-list.component';
 
-
-
 @NgModule({
   declarations: [
     AppComponent,
     PosenetLocalComponent,
     HeaderComponent,
     PoseVerifyComponent,
-    PoseListComponent,
+    PoseListComponent
   ],
   imports: [
     BrowserModule,
@@ -38,9 +43,10 @@ import { PoseListComponent } from './pose/pose-list/pose-list.component';
     MatToolbarModule,
     MatDividerModule,
     MatSelectModule,
-    MatExpansionModule
+    MatExpansionModule,
+    MatProgressSpinnerModule
   ],
   providers: [ConfigService],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {}

@@ -27,7 +27,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false})); //  just for demo purpose.
 
 let tmpVideosListObject = {};
-let datasetVideos = {};
+let datasetDetails = {};
 
 const datasets = readdirSync(path.join(__dirname, 'assets', 'videos'))
                       .filter(f => statSync(join(path.join(__dirname, 'assets', 'videos'), f)).isDirectory());
@@ -37,9 +37,9 @@ datasets.forEach(datasetName => {
   tmpVideosListObject = {};
   recursiveReadDir(__dirname+'/assets/videos/'+ datasetName +'/','');
   console.log(tmpVideosListObject);
-  datasetVideos[datasetName] = tmpVideosListObject;
+  datasetDetails[datasetName] = tmpVideosListObject;
   tmpVideosListObject = null;
-});  
+});
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -63,7 +63,7 @@ function recursiveReadDir(dirPath, currentDir) {
     if(fileStat.isDirectory()){
       tmpVideosListObject[file] = [];
       recursiveReadDir(rootPath, file);
-    } else {      
+    } else {
       tmpVideosListObject[currentDir] = [...tmpVideosListObject[currentDir], file ] ;
     }
   }
@@ -71,15 +71,15 @@ function recursiveReadDir(dirPath, currentDir) {
 
 
 app.get('/api/videos/:dataset', (req,res,next) => {
-  
+
   res.status(200).json({
     message: 'These are the list of videos',
-    videos: datasetVideos[req.params.dataset]
+    videos: datasetDetails[req.params.dataset]
   })
 })
 
 app.get('/video/:dataset/:action/:name', (req, res, next) => {
-  const path = 'backend/assets/videos/'+ req.params.dataset +'/' + req.params.action +'/'+req.params.name;
+  const path = 'backend/assets/videos/'+ req.params.dataset + '/' + req.params.action +'/' +req.params.name;
   const stat = statSync(path)
   const fileSize = stat.size
   const range = req.headers.range
@@ -110,7 +110,7 @@ app.get('/video/:dataset/:action/:name', (req, res, next) => {
     res.writeHead(200, head)
     createReadStream(path).pipe(res)
   }
-})
+});
 
 app.post('/api/newpose/:dataset', (req, res, next) => {
   //console.log(req.body);
@@ -151,46 +151,41 @@ app.get('/api/datasets', (req, res, next) => {
   });
 });
 
+app.get('/api/dataset_details', (req, res, next) => {
+  res.status(200).json({
+    datasetDetails: datasetDetails
+  });
+});
+
 app.get('/api/:dataset/actions', (req, res, next) => {
-  // const query = Pose.find();
   const datasetName = req.params.dataset;
-  // query.distinct('action');
-  // query.where('dataset').equals(datasetName);
-  // query.then((documents) => {
-  //   res.status(200).json({
-  //     message: 'Actions found for the dataset ' + datasetName,
-  //     actions: documents,
-  //     //actionCount: Pose.count()
-  //   });
-  // }).catch((err) => {
-  //     res.status(501).json({
-  //       message: "Somme error occured while fetching action for the " + datasetName + " dataset." + err
-  //     });
-  // });
   res.status(200).json({
     message: 'Actions found for the dataset ' + datasetName,
-    actions: Object.keys(datasetVideos[datasetName])
+    actions: Object.keys(datasetDetails[datasetName])
   });
 });
 
 app.get('/api/:dataset/:action/videos', (req, res, next) => {
   const datasetName = req.params.dataset;
   const actionName = req.params.action;
-  
+
   res.status(200).json({
     message: 'Videos found for the dataset ' + datasetName +' and action ' + actionName,
-    videos: datasetVideos[datasetName][actionName]
+    videos: datasetDetails[datasetName][actionName]
   });
-})
+});
 
 app.get('/api/:dataset/:action/keypoints', (req, res, next) => {
   const query = Pose.find();
   const datasetName = req.params.dataset;
   const action = req.params.action;
+  const video_title = req.query.video_title;
   query.select('action video_title score keypoints');
   query.where('dataset').equals(datasetName);
   query.where('action').equals(action);
+  query.where('video_title').equals(video_title);
   query.then((documents) => {
+    console.log('got some documents ' + documents);
     res.status(200).json({
       message: 'Actions found for the dataset ' + datasetName,
       poses: documents,

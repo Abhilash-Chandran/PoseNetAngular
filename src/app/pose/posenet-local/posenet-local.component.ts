@@ -14,7 +14,7 @@ import { environment } from '../../../environments/environment';
 export class PosenetLocalComponent implements OnInit, OnDestroy {
 
   api: VgAPI;
-  timeUpdateSubs: Subscription;
+  // canPlaySubs: Subscription;
   loadedMetaDataSubs: Subscription;
   videoEndedSubs: Subscription;
   videoListFetched: Subscription;
@@ -22,7 +22,7 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
   datasetDetails = {};
   interval_id: any;
   pose_detect_queue = [];
-
+  posenet: any;
   // select dataset options
   datasets: string[];
   datasetSelected: string;
@@ -49,49 +49,38 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
   onPlayerReady(api: VgAPI) {
     console.log('On player ready called.');
     this.api = api;
-
+    this.api.playbackRate = 0.25;
     this.videoEndedSubs = this.api.getDefaultMedia().subscriptions.ended.subscribe(() => {
       console.log('video ended called');
       clearInterval(this.interval_id);
-      this.nextVideo();
     });
-    // this.timeUpdateSubs = this.api.getDefaultMedia().subscriptions.timeUpdate.subscribe(() => {
-    //   this.detetectPose(this.media.nativeElement, this.api.currentTime);
-    // });
   }
 
   async detetectPose() {
-    const updatedtime = Date.now();
-    const video = this.media.nativeElement;
-    console.log('pushing ' + updatedtime);
-    this.pose_detect_queue.push(updatedtime);
-    const imageScaleFactor = 0.5;
-    const outputStride = 16;
-    const flipHorizontal = false;
-
-    const net = await posenet.load(0.5);
-    const pose = await net.estimateSinglePose(video, imageScaleFactor, flipHorizontal, outputStride);
-    net.dispose();
-    const currentVideo = this.videoList[this.currentIndex];
-    console.log('removing ' + this.pose_detect_queue.shift());
-    this.poseService.saveNewPose(this.datasetSelected, currentVideo.action, currentVideo.name,updatedtime, pose);
+      const updatedtime = Date.now();
+      const video = this.media.nativeElement;
+      console.log('pushing ' + updatedtime);
+      this.pose_detect_queue.push(updatedtime);
+      const imageScaleFactor = 0.5;
+      const outputStride = 16;
+      const flipHorizontal = false;
+      if (!this.posenet) {
+        this.posenet = await posenet.load(0.5);
+      }
+      const pose = await this.posenet.estimateSinglePose(video, imageScaleFactor, flipHorizontal, outputStride);
+      // net.dispose();
+      const currentVideo = this.videoList[this.currentIndex];
+      console.log('removing ' + this.pose_detect_queue.shift());
+      this.poseService.saveNewPose(this.datasetSelected, currentVideo.action, currentVideo.name, updatedtime, pose);
+      if (this.pose_detect_queue.length === 0) {
+        clearInterval(this.interval_id);
+        this.nextVideo();
+        this.posenet.dispose();
+        this.posenet = null;
+      }
   }
 
   nextVideo() {
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-    
-    async function waitTillQueueEmpty() {
-      await sleep(100);
-    }  
-
-    //wait till the previous queue is empty by polling every 100ms
-    while (this.pose_detect_queue.length > 0) {
-      waitTillQueueEmpty();
-    }    
-    console.log('Queue is empty for ' + this.currentSrc);
-
     console.log('current index is ' + this.currentIndex );
     this.currentIndex++;
     if (this.currentIndex === this.videoList.length) {
@@ -104,7 +93,7 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
   }
 
   playVideo() {
-       this.api.play();
+    this.api.play();
   }
 
   pauseVideo() {
@@ -114,26 +103,37 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
   stopExraction() {
     clearInterval(this.interval_id);
     this.api.pause();
-    this.timeUpdateSubs.unsubscribe();
+    // this.canPlaySubs.unsubscribe();
     this.loadedMetaDataSubs.unsubscribe();
-    this.videoEndedSubs.unsubscribe();    
+    this.videoEndedSubs.unsubscribe();
   }
 
   startOrPauseExtraction() {
     if (this.btn_text === 'Start Extraction') {
+      // this.loadedMetaDataSubs = this.api.getDefaultMedia().subscriptions.loadedMetadata.subscribe(() => {
+      //   setTimeout(() => {
+      //     this.playVideo();
+      //   }, 5000);
+      // });
+      this.playVideo();
+      this.interval_id = setInterval(this.detetectPose.bind(this), 1000 / 60);
       this.loadedMetaDataSubs = this.api.getDefaultMedia().subscriptions.loadedMetadata.subscribe(() => {
         setTimeout(() => {
-          this.playVideo();
-        }, 5000);
+              console.log('loaded Meta data called.');
+              clearInterval(this.interval_id);
+              this.playVideo();
+              this.interval_id = setInterval(this.detetectPose.bind(this), 1000 / 60);
+            }, 2000);
       });
       this.btn_text = 'Pause Extraction';
-      this.playVideo();
-      this.interval_id = setInterval(this.detetectPose.bind(this), 1000 / 2);
+      // this.playVideo();
+      // this.interval_id = setInterval(this.detetectPose.bind(this), 1000 / 20);
     } else {
       clearInterval(this.interval_id);
       this.pauseVideo();
       this.btn_text = 'Start Extraction';
-      this.locUnsubscribe(this.loadedMetaDataSubs);      
+      this.locUnsubscribe(this.loadedMetaDataSubs);
+      // this.locUnsubscribe(this.canPlaySubs);
     }
   }
 
@@ -155,7 +155,7 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.locUnsubscribe(this.timeUpdateSubs);
+    // this.locUnsubscribe(this.canPlaySubs);
     this.locUnsubscribe(this.loadedMetaDataSubs);
     this.locUnsubscribe(this.videoEndedSubs);
     this.locUnsubscribe(this.videoListFetched);

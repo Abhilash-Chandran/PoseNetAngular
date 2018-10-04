@@ -57,11 +57,12 @@ export class PoseService {
     return this.datasetDetailsFetched.asObservable();
   }
 
-  saveNewPose(dataset: string, action: string, video_name: string, pose: Pose) {
+  saveNewPose(dataset: string, action: string, video_name: string, time: number, pose: Pose) {
     const newPose = {
       action: action,
       name: video_name,
       score: pose.score,
+      time: time,
       keypoints: pose.keypoints
     };
     this.http

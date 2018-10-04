@@ -12,6 +12,7 @@ const poseSchema = mongoose.Schema({
   action: {type: String, required: true},
   video_title: {type: String, required: true},
   score: {type: Number, required: true},
+  time: {type: Number, require: true},
   keypoints: {type: [{
     score: {type: Number},
     position: {

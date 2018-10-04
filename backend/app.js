@@ -33,10 +33,10 @@ const datasets = readdirSync(path.join(__dirname, 'assets', 'videos'))
                       .filter(f => statSync(join(path.join(__dirname, 'assets', 'videos'), f)).isDirectory());
 
 datasets.forEach(datasetName => {
-  console.log('processing dataset ' + datasetName);
+  // console.log('processing dataset ' + datasetName);
   tmpVideosListObject = {};
   recursiveReadDir(__dirname+'/assets/videos/'+ datasetName +'/','');
-  console.log(tmpVideosListObject);
+  // console.log(tmpVideosListObject);
   datasetDetails[datasetName] = tmpVideosListObject;
   tmpVideosListObject = null;
 });
@@ -127,8 +127,9 @@ app.post('/api/newpose/:dataset', (req, res, next) => {
   const pose = new Pose({
     dataset: req.params.dataset,
     action: req.body.action,
-    video_title: req.body.name,
+    video_title: req.body.name,    
     score: req.body.score,
+    time: req.body.time,
     keypoints: keypoints
   });
   pose.save().then((result) => {
@@ -185,7 +186,7 @@ app.get('/api/:dataset/:action/keypoints', (req, res, next) => {
   query.where('action').equals(action);
   query.where('video_title').equals(video_title);
   query.then((documents) => {
-    console.log('got some documents ' + documents);
+    // console.log('got some documents ' + documents);
     res.status(200).json({
       message: 'Actions found for the dataset ' + datasetName,
       poses: documents,

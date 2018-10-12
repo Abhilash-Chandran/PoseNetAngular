@@ -54,7 +54,7 @@ export class PoseListComponent implements OnInit, AfterViewInit {
       .subscribe((response: PoseReponseModel) => {
         this.poses = response.poses;
         console.log('Got some poses ' + this.poses.length);
-        this.interval_id = setInterval(this.repaintCanvas.bind(this), 1000 / 10 );
+        this.interval_id = setInterval(this.repaintCanvas.bind(this), 1000 / 5 );
       });
   }
 

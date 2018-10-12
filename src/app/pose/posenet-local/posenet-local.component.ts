@@ -51,6 +51,9 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
     this.api = api;
     this.api.playbackRate = 0.25;
     this.videoEndedSubs = this.api.getDefaultMedia().subscriptions.ended.subscribe(() => {
+      if (this.api.state === 'play') {
+        this.startOrPauseExtraction();
+      }
       console.log('video ended called');
       clearInterval(this.interval_id);
     });
@@ -73,7 +76,9 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
       console.log('removing ' + this.pose_detect_queue.shift());
       this.poseService.saveNewPose(this.datasetSelected, currentVideo.action, currentVideo.name, updatedtime, pose);
       if (this.pose_detect_queue.length === 0) {
+        console.log('Clearing Interval ID : ' + this.interval_id);
         clearInterval(this.interval_id);
+
         this.nextVideo();
         this.posenet.dispose();
         this.posenet = null;
@@ -116,14 +121,15 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
       //   }, 5000);
       // });
       this.playVideo();
-      this.interval_id = setInterval(this.detetectPose.bind(this), 1000 / 60);
+      this.interval_id = setInterval(this.detetectPose.bind(this), 50);
       this.loadedMetaDataSubs = this.api.getDefaultMedia().subscriptions.loadedMetadata.subscribe(() => {
         setTimeout(() => {
               console.log('loaded Meta data called.');
               clearInterval(this.interval_id);
               this.playVideo();
-              this.interval_id = setInterval(this.detetectPose.bind(this), 1000 / 60);
-            }, 2000);
+              this.interval_id = setInterval(this.detetectPose.bind(this), 50);
+              console.log('sTarted a new interval with Id: ' + this.interval_id);
+                        }, 4000);
       });
       this.btn_text = 'Pause Extraction';
       // this.playVideo();

@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-=======
 # PoseNetAngular 
 
->>>>>>> 3ec4f179ed0323659c72c42eeb67b3b67783811f
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 6.2.1.
 
 # PoseNetAngular

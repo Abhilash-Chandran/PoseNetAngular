@@ -40,7 +40,7 @@ A simple screen shot is provided below for the reference. The screens should app
 ### New dataset handling
 It is important to note that the videos are served from the backend server using expresJS and videos are played as streams using VideoAugular component https://github.com/videogular/videogular2. 
 
-Assume you have new daataset called action_2018 with different actions namely jump, crawl, brush. Then you should segregate your videos into separate folders based on their actions and place them in a folder called action_2018. THen place this folder inside **backen/assets/videos** folder. A sample for JHMDB dataset is show below.
+Assume you have new daataset called action_2018 with different actions namely jump, crawl, brush. Then you should segregate your videos into separate folders based on their actions and place them in a folder called action_2018. THen place this folder inside **backen/assets/videos** folder. A sample for [JHMDB dataset](#jhmdb-dataset) is show below.
 
 ![images/DatasetLocaion.png](images/DatasetLocaion.png)
 
@@ -73,3 +73,16 @@ Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protrac
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+
+
+## References
+
+#### JHMDB dataset
+@inproceedings{Jhuang:ICCV:2013,
+title = {Towards understanding action recognition},
+author = {H. Jhuang and J. Gall and S. Zuffi and C. Schmid and M. J. Black},
+booktitle = {International Conf. on Computer Vision (ICCV)},
+month = Dec,
+pages = {3192-3199},
+year = {2013}
+}

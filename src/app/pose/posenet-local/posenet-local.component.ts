@@ -36,6 +36,15 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
 
   isPlaying = false;
 
+  // shim layer with setTimeout fallback
+  requestAnimFrame = (function() {
+    return  requestAnimationFrame       ||
+            window.webkitRequestAnimationFrame ||
+            function( callback ) {
+              window.setTimeout(callback, 1000 / 20);
+            };
+  })();
+
   constructor(private poseService: PoseService) { }
 
   ngOnInit() {
@@ -55,7 +64,9 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
         this.startOrPauseExtraction();
       }
       console.log('video ended called');
-      clearInterval(this.interval_id);
+      // clearInterval(this.interval_id);
+      cancelAnimationFrame(this.interval_id);
+      this.nextVideo();
     });
   }
 
@@ -73,16 +84,15 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
       const pose = await this.posenet.estimateSinglePose(video, imageScaleFactor, flipHorizontal, outputStride);
       // net.dispose();
       const currentVideo = this.videoList[this.currentIndex];
-      console.log('removing ' + this.pose_detect_queue.shift());
       this.poseService.saveNewPose(this.datasetSelected, currentVideo.action, currentVideo.name, updatedtime, pose);
-      if (this.pose_detect_queue.length === 0) {
-        console.log('Clearing Interval ID : ' + this.interval_id);
-        clearInterval(this.interval_id);
+      console.log('removing ' + this.pose_detect_queue.shift());
+      this.interval_id = this.requestAnimFrame(this.detetectPose.bind(this));
+      // if (this.pose_detect_queue.length === 0) {
+      //   console.log('Clearing Interval ID : ' + this.interval_id);
+      //   // clearInterval(this.interval_id);
 
-        this.nextVideo();
-        this.posenet.dispose();
-        this.posenet = null;
-      }
+      //   return;
+      // }
   }
 
   nextVideo() {
@@ -106,7 +116,8 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
   }
 
   stopExraction() {
-    clearInterval(this.interval_id);
+    // clearInterval(this.interval_id);
+    cancelAnimationFrame(this.interval_id);
     this.api.pause();
     // this.canPlaySubs.unsubscribe();
     this.loadedMetaDataSubs.unsubscribe();
@@ -121,13 +132,19 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
       //   }, 5000);
       // });
       this.playVideo();
-      this.interval_id = setInterval(this.detetectPose.bind(this), 50);
+      // this.interval_id = setInterval(this.detetectPose.bind(this), 50);
+      this.interval_id = this.requestAnimFrame(this.detetectPose.bind(this));
+      console.log('sTarted a new interval with Id: ' + this.interval_id);
       this.loadedMetaDataSubs = this.api.getDefaultMedia().subscriptions.loadedMetadata.subscribe(() => {
+        cancelAnimationFrame(this.interval_id);
         setTimeout(() => {
               console.log('loaded Meta data called.');
-              clearInterval(this.interval_id);
+              // clearInterval(this.interval_id);
+              this.posenet.dispose();
+              this.posenet = null;
               this.playVideo();
-              this.interval_id = setInterval(this.detetectPose.bind(this), 50);
+              // this.interval_id = setInterval(this.detetectPose.bind(this), 50);
+              this.interval_id = this.requestAnimFrame(this.detetectPose.bind(this));
               console.log('sTarted a new interval with Id: ' + this.interval_id);
                         }, 4000);
       });
@@ -135,7 +152,8 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
       // this.playVideo();
       // this.interval_id = setInterval(this.detetectPose.bind(this), 1000 / 20);
     } else {
-      clearInterval(this.interval_id);
+      // clearInterval(this.interval_id);
+      cancelAnimationFrame(this.interval_id);
       this.pauseVideo();
       this.btn_text = 'Start Extraction';
       this.locUnsubscribe(this.loadedMetaDataSubs);
@@ -165,7 +183,8 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
     this.locUnsubscribe(this.loadedMetaDataSubs);
     this.locUnsubscribe(this.videoEndedSubs);
     this.locUnsubscribe(this.videoListFetched);
-    clearInterval(this.interval_id);
+    // clearInterval(this.interval_id);
+    cancelAnimationFrame(this.interval_id);
   }
 
   locUnsubscribe(subs: Subscription) {

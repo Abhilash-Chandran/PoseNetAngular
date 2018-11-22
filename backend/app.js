@@ -127,7 +127,7 @@ app.post('/api/newpose/:dataset', (req, res, next) => {
   const pose = new Pose({
     dataset: req.params.dataset,
     action: req.body.action,
-    video_title: req.body.name,    
+    video_title: req.body.name,
     score: req.body.score,
     time: req.body.time,
     keypoints: keypoints

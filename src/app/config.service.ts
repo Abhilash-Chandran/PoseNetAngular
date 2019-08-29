@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class ConfigService {
-  configUrl = "assets/config.json";
+  configUrl = 'assets/config.json';
 
   constructor(private httpc: HttpClient) { }
 

@@ -11,15 +11,15 @@ export class AppComponent {
   config: Config;
   dataFromServer: string;
   title = 'testHTTPAngular';
-  headers:any;
+  headers: any;
   constructor(private configService: ConfigService) {}
 
   onGetDataFromServer() {
     this.configService.getConfig()
       .subscribe((data: Config) => {
-        this.config = {...data}
+        this.config = {...data};
         this.dataFromServer = this.config.heroesUrl + '\n' + this.config.textfile;
-      })
+      });
   }
 
   showConfigResponse() {
@@ -30,7 +30,6 @@ export class AppComponent {
         const keys = resp.headers.keys();
         this.headers = keys.map(key =>
           console.log(`${key}: ${resp.headers.get(key)}`));
-  
         // access the body directly, which is typed as `Config`.
         this.config = { ... resp.body };
         this.dataFromServer = this.config.heroesUrl + '\n' + this.config.textfile;

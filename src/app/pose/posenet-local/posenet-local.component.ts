@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import * as posenet from '@tensorflow-models/posenet';
 import { Subscription } from 'rxjs';
-import { VgAPI } from 'videogular2/core';
+import { VgAPI } from 'videogular2/compiled/core';
 import { PoseService } from '../pose.service';
 import { VideoModel } from '../video.model';
 import { environment } from '../../../environments/environment';

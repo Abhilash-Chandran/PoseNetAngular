@@ -26,7 +26,7 @@ export class PoseListComponent implements OnInit, AfterViewInit {
   @Input()
   action: string;
 
-  @ViewChild('loc_canvas') canvas: ElementRef;
+  @ViewChild('loc_canvas', { static: false }) canvas: ElementRef;
   @Input()
   poses: Pose[];
 

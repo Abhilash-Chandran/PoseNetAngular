@@ -28,7 +28,7 @@ export class PosenetLocalComponent implements OnInit, OnDestroy {
   datasetSelected: string;
 
   // Video element
-  @ViewChild('media') media: ElementRef;
+  @ViewChild('media', { static: false }) media: ElementRef;
   videoList: VideoModel[];
   currentIndex = 0;
   currentSrc: string;

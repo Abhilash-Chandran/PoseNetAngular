@@ -27,7 +27,7 @@
     "body-parser": "^1.18.3",
     "bootstrap": "^4.3.1",
     "core-js": "^2.5.4",
-    "express": "^4.16.3",
+    "express": "^4.17.3",
     "mongoose": "^5.2.18",
     "nodemon": "^1.18.4",
     "rxjs": "~6.5.2",
